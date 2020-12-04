@@ -67,19 +67,13 @@ fn main() {
 }
 
 fn part1(passwords: &[Password]) {
-    let count: usize = passwords
-        .iter()
-        .filter(|p| p.is_valid_part_1())
-        .count();
+    let count: usize = passwords.iter().filter(|p| p.is_valid_part_1()).count();
 
     println!("part1 = {}", count);
 }
 
 fn part2(passwords: &[Password]) {
-    let count: usize = passwords
-        .iter()
-        .filter(|p| p.is_valid_part_2())
-        .count();
+    let count: usize = passwords.iter().filter(|p| p.is_valid_part_2()).count();
 
     println!("part2 = {}", count);
 }
