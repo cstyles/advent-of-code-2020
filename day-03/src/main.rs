@@ -1,3 +1,5 @@
+static INPUT: &str = include_str!("../input.txt");
+
 #[derive(Debug, Copy, Clone, Eq, PartialEq)]
 enum Tile {
     Tree,
@@ -26,7 +28,7 @@ struct Map {
 }
 
 impl Map {
-    fn new(input: String) -> Self {
+    fn new(input: &str) -> Self {
         let mut map = Self {
             map: [[Default::default(); WIDTH]; HEIGHT],
         };
@@ -53,8 +55,7 @@ const WIDTH: usize = 31;
 const HEIGHT: usize = 323;
 
 fn main() {
-    let input = std::fs::read_to_string("input.txt").unwrap();
-    let map = Map::new(input);
+    let map = Map::new(INPUT);
 
     part1(&map);
     println!();

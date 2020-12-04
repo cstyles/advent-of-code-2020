@@ -1,6 +1,8 @@
 use regex::Regex;
 use std::collections::HashMap;
 
+static INPUT: &str = include_str!("../input.txt");
+
 lazy_static::lazy_static! (
     static ref RE: Regex = {
         Regex::new(r#"^(\d+)-(\d+) (\w): (.*)$"#).expect("couldn't compile regex")
@@ -54,9 +56,7 @@ impl std::convert::From<&str> for Password {
 }
 
 fn main() {
-    let input = std::fs::read_to_string("input.txt").unwrap();
-
-    let passwords: Vec<Password> = input
+    let passwords: Vec<Password> = INPUT
         .trim()
         .lines()
         .map(|line| Password::from(line))

@@ -2,6 +2,8 @@ use regex::Regex;
 use std::convert::{TryFrom, TryInto};
 use std::iter::{FromIterator, IntoIterator};
 
+static INPUT: &str = include_str!("../input.txt");
+
 #[derive(Debug, Default)]
 struct Passport<'a> {
     byr: Option<&'a str>,
@@ -163,9 +165,8 @@ impl Height {
 
 fn main() {
     let split_regex = Regex::new(r#"\s"#).unwrap();
-    let input = std::fs::read_to_string("input.txt").unwrap();
 
-    let passports: Vec<Passport> = input
+    let passports: Vec<Passport> = INPUT
         .trim()
         .split("\n\n")
         .map(|group| split_regex.split(group))
