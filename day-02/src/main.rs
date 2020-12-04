@@ -19,7 +19,7 @@ struct Password {
 
 impl Password {
     fn is_valid_part_1(&self) -> bool {
-        let mut hm = HashMap::<char, i32>::new();
+        let mut hm: HashMap<char, i32> = HashMap::with_capacity(self.string.len());
         for character in self.string.chars() {
             hm.entry(character).and_modify(|i| *i += 1).or_insert(1);
         }
