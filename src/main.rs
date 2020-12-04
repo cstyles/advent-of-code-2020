@@ -14,7 +14,7 @@ fn main() {
 
 fn part1(numbers: &[i32], size: usize) {
     for i in 0..size {
-        for j in 0..size {
+        for j in 0..(i+1) {
             let sum = numbers[i] + numbers[j];
             if sum == 2020 {
                 let product = numbers[i] * numbers[j];
