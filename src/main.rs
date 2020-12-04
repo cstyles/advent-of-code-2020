@@ -10,10 +10,12 @@ fn main() {
 
     for i in 0..size {
         for j in 0..size {
-            let sum = numbers[i] + numbers[j];
-            if sum == 2020 {
-                let product = numbers[i] * numbers[j];
-                println!("i: {}, j: {}, product: {}", i, j, product);
+            for k in 0..size {
+                let sum = numbers[i] + numbers[j] + numbers[k];
+                if sum == 2020 {
+                    let product = numbers[i] * numbers[j] * numbers[k];
+                    println!("i: {}, j: {}, k: {}, product: {}", i, j, k, product);
+                }
             }
         }
     }
