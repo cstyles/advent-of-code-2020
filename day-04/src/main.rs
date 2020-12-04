@@ -1,5 +1,6 @@
 use regex::Regex;
 use std::convert::{TryFrom, TryInto};
+use std::iter::{FromIterator, IntoIterator};
 
 #[derive(Debug, Default)]
 struct Passport<'a> {
@@ -81,8 +82,8 @@ impl<'a> Passport<'a> {
     }
 }
 
-impl<'a> std::convert::From<Vec<&'a str>> for Passport<'a> {
-    fn from(fields: Vec<&'a str>) -> Self {
+impl<'a> FromIterator<&'a str> for Passport<'a> {
+    fn from_iter<T: IntoIterator<Item = &'a str>>(fields: T) -> Self {
         let mut passport: Passport = Default::default();
 
         for field in fields {
@@ -168,8 +169,7 @@ fn main() {
         .trim()
         .split("\n\n")
         .map(|group| split_regex.split(group))
-        .map(|split| split.collect::<Vec<&str>>())
-        .map(|fields| Passport::from(fields))
+        .map(Iterator::collect)
         .collect();
 
     part1(&passports);
