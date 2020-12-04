@@ -58,7 +58,7 @@ fn main() {
 
     let passwords: Vec<Password> = input
         .trim()
-        .split("\n")
+        .lines()
         .map(|line| Password::from(line))
         .collect();
 
