@@ -64,8 +64,26 @@ fn main() {
 fn part1(map: &Map) {
     println!("== PART 1 ==");
 
-    let y_slope: usize = 1;
-    let x_slope: usize = 3;
+    let trees = get_trees_for_slope(map, 1, 3);
+    println!("trees = {}", trees);
+}
+
+fn part2(map: &Map) {
+    println!("== PART 2 ==");
+
+    let slopes = [(1usize, 1usize), (1, 3), (1, 5), (1, 7), (2, 1)];
+    let mut all_trees: Vec<i64> = vec![];
+
+    for (y_slope, x_slope) in slopes.iter() {
+        let trees = get_trees_for_slope(map, *y_slope, *x_slope);
+        all_trees.push(trees);
+    }
+
+    let product: i64 = all_trees.iter().product();
+    println!("trees = {:?}", product);
+}
+
+fn get_trees_for_slope(map: &Map, y_slope: usize, x_slope: usize) -> i64 {
     let mut x: usize = 0;
     let mut y: usize = 0;
     let mut trees = 0;
@@ -79,32 +97,5 @@ fn part1(map: &Map) {
         x += x_slope;
     }
 
-    println!("trees = {}", trees);
-}
-
-fn part2(map: &Map) {
-    println!("== PART 2 ==");
-
-    let slopes = [(1, 1), (1, 3), (1, 5), (1, 7), (2, 1)];
-    let mut all_trees: Vec<i64> = vec![];
-
-    for (y_slope, x_slope) in slopes.iter() {
-        let mut x: usize = 0;
-        let mut y: usize = 0;
-        let mut trees = 0;
-
-        while y < HEIGHT {
-            if map.get(y, x) == Tile::Tree {
-                trees += 1;
-            }
-
-            y += y_slope;
-            x += x_slope;
-        }
-
-        all_trees.push(trees);
-    }
-
-    let product: i64 = all_trees.iter().product();
-    println!("trees = {:?}", product);
+    trees
 }
