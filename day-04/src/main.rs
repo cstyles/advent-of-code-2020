@@ -41,47 +41,39 @@ impl<'a> Passport<'a> {
             self.byr, self.iyr, self.eyr, self.hgt, self.hcl, self.ecl, self.pid,
         ];
 
-        necessary_fields.iter().all(|field| field.is_some())
+        necessary_fields.iter().all(Option::is_some)
     }
 
     fn is_valid_part_2(&self) -> Option<bool> {
-        let necessary_fields = vec![
-            self.byr, self.iyr, self.eyr, self.hgt, self.hcl, self.ecl, self.pid,
-        ];
-
-        let wow = necessary_fields
-            .into_iter()
-            .collect::<Option<Vec<&str>>>()?;
-
-        let byr: i32 = wow[0].parse().ok()?;
+        let byr: i32 = self.byr?.parse().ok()?;
         if byr < 1920 || byr > 2002 {
             return Some(false);
         }
 
-        let iyr: i32 = wow[1].parse().ok()?;
+        let iyr: i32 = self.iyr?.parse().ok()?;
         if iyr < 2010 || iyr > 2020 {
             return Some(false);
         }
 
-        let eyr: i32 = wow[2].parse().ok()?;
+        let eyr: i32 = self.eyr?.parse().ok()?;
         if eyr < 2020 || eyr > 2030 {
             return Some(false);
         }
 
-        let hgt: Height = wow[3].try_into().ok()?;
+        let hgt: Height = self.hgt?.try_into().ok()?;
         if !hgt.is_valid() {
             return Some(false);
         }
 
-        if !HCL_REGEX.is_match(wow[4]) {
+        if !HCL_REGEX.is_match(self.hcl?) {
             return Some(false);
         }
 
-        if !ECL_REGEX.is_match(wow[5]) {
+        if !ECL_REGEX.is_match(self.ecl?) {
             return Some(false);
         }
 
-        if !PID_REGEX.is_match(wow[6]) {
+        if !PID_REGEX.is_match(self.pid?) {
             return Some(false);
         }
 
@@ -91,7 +83,7 @@ impl<'a> Passport<'a> {
 
 impl<'a> std::convert::From<Vec<&'a str>> for Passport<'a> {
     fn from(fields: Vec<&'a str>) -> Self {
-        let mut passport: Passport<'a> = Default::default();
+        let mut passport: Passport = Default::default();
 
         for field in fields {
             let captures = FIELD_REGEX.captures(field).unwrap();
