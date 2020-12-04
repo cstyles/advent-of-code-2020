@@ -28,6 +28,16 @@ impl Password {
             _ => false,
         }
     }
+
+    fn is_valid_part_2(&self) -> bool {
+        let index1 = (self.min - 1) as usize;
+        let char1 = self.string.chars().nth(index1).unwrap();
+
+        let index2 = (self.max - 1) as usize;
+        let char2 = self.string.chars().nth(index2).unwrap();
+
+        (char1 == self.required_letter) ^ (char2 == self.required_letter)
+    }
 }
 
 impl std::convert::From<&str> for Password {
@@ -46,12 +56,30 @@ impl std::convert::From<&str> for Password {
 fn main() {
     let input = std::fs::read_to_string("input.txt").unwrap();
 
-    let count: usize = input
+    let passwords: Vec<Password> = input
         .trim()
         .split("\n")
         .map(|line| Password::from(line))
+        .collect();
+
+    part1(&passwords);
+    part2(&passwords);
+}
+
+fn part1(passwords: &[Password]) {
+    let count: usize = passwords
+        .iter()
         .filter(|p| p.is_valid_part_1())
         .count();
 
     println!("part1 = {}", count);
+}
+
+fn part2(passwords: &[Password]) {
+    let count: usize = passwords
+        .iter()
+        .filter(|p| p.is_valid_part_2())
+        .count();
+
+    println!("part2 = {}", count);
 }
