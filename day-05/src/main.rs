@@ -1,6 +1,8 @@
+use std::cmp::{Ord, Ordering, PartialOrd};
+
 static INPUT: &str = include_str!("../input.txt");
 
-#[derive(Debug, Default, Copy, Clone, PartialEq, Eq)]
+#[derive(Debug, Default, PartialEq, Eq)]
 struct Seat {
     row: i64,
     column: i64,
@@ -13,9 +15,15 @@ impl Seat {
 
     fn next(&self) -> Self {
         if self.column == 7 {
-            Self { row: self.row + 1, column: 0 }
+            Self {
+                row: self.row + 1,
+                column: 0,
+            }
         } else {
-            Self { row: self.row, column: self.column + 1 }
+            Self {
+                row: self.row,
+                column: self.column + 1,
+            }
         }
     }
 }
@@ -34,7 +42,7 @@ impl std::convert::From<&str> for Seat {
                 _ => {
                     eprintln!("invalid row character");
                     panic!();
-                },
+                }
             };
 
             row += bit * multiplier;
@@ -48,9 +56,9 @@ impl std::convert::From<&str> for Seat {
                 'L' => 0,
                 'R' => 1,
                 _ => {
-                    eprintln!("invalid row character");
+                    eprintln!("invalid column character");
                     panic!();
-                },
+                }
             };
 
             column += bit * multiplier;
@@ -61,8 +69,6 @@ impl std::convert::From<&str> for Seat {
     }
 }
 
-use std::cmp::{Ordering, PartialOrd, Ord};
-
 impl PartialOrd for Seat {
     fn partial_cmp(&self, other: &Self) -> Option<Ordering> {
         Some(self.cmp(other))
@@ -71,40 +77,32 @@ impl PartialOrd for Seat {
 
 impl Ord for Seat {
     fn cmp(&self, other: &Self) -> Ordering {
-        if self.row == other.row {
-            self.column.cmp(&other.column)
-        } else {
-            self.row.cmp(&other.row)
+        match self.row.cmp(&other.row) {
+            Ordering::Equal => self.column.cmp(&other.column),
+            x => x,
         }
     }
 }
 
 fn main() {
-    let max_id: i64 = INPUT
-        .trim()
-        .lines()
-        .map(Seat::from)
-        .map(|seat| seat.id())
-        .max()
-        .unwrap();
-
-    println!("max_id: {}", max_id);
-
-    // ====
-
-    let mut seats: Vec<Seat> = INPUT
-        .trim()
-        .lines()
-        .map(Seat::from)
-        .collect();
+    let mut seats: Vec<Seat> = INPUT.lines().map(Seat::from).collect();
+    part1(&seats);
 
     seats.sort();
+    part2(&seats);
+}
 
+fn part1(seats: &[Seat]) {
+    let max_id = seats.iter().map(|seat| seat.id()).max().unwrap();
+
+    println!("part1: {}", max_id);
+}
+
+fn part2(seats: &[Seat]) {
     for seats in seats.windows(2) {
-        if seats[0].next() == seats[1] {
-            continue;
-        } else {
+        if seats[0].next() != seats[1] {
             println!("my seat: {}", seats[0].next().id());
+            break;
         }
     }
 }
