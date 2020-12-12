@@ -8,6 +8,9 @@ fn main() {
 
     let invalid_number = part1(&numbers);
     println!("part1 = {}", invalid_number);
+
+    let sum = part2(&numbers, invalid_number);
+    println!("part2 = {}", sum);
 }
 
 fn part1(numbers: &[i64]) -> i64 {
@@ -20,6 +23,21 @@ fn part1(numbers: &[i64]) -> i64 {
     }
 
     numbers[end]
+}
+
+fn part2(numbers: &[i64], invalid_number: i64) -> i64 {
+    let mut window_size = 2;
+
+    loop {
+        for window in numbers.windows(window_size) {
+            let sum: i64 = window.iter().sum();
+            if sum == invalid_number {
+                return window[0] + window[window.len() - 1];
+            }
+        }
+
+        window_size += 1;
+    }
 }
 
 fn is_valid(numbers: &[i64], start: usize, end: usize) -> bool {
