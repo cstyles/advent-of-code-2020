@@ -126,7 +126,7 @@ fn recursive_bags(
                     total += number;
                     total += number * recursive_bags(&mut dyn_prog, &bag_data, bagtype);
                 }
-            },
+            }
             None => total = 0,
         }
 

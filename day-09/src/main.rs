@@ -1,10 +1,7 @@
 static INPUT: &str = include_str!("../input.txt");
 
 fn main() {
-    let numbers: Vec<i64> = INPUT
-        .lines()
-        .map(|line| line.parse().unwrap())
-        .collect();
+    let numbers: Vec<i64> = INPUT.lines().map(|line| line.parse().unwrap()).collect();
 
     let invalid_number = part1(&numbers);
     println!("part1 = {}", invalid_number);
