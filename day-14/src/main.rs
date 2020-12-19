@@ -1,4 +1,4 @@
-use std::collections::VecDeque;
+use std::collections::{HashMap, VecDeque};
 use std::convert::From;
 use std::fmt;
 
@@ -174,7 +174,7 @@ impl Mask {
 }
 
 fn main() {
-    // part1();
+    part1();
     part2();
 }
 
@@ -220,8 +220,7 @@ fn part2() {
 
     let mask = [Bit::Zero; 36];
     let mut mask = Mask { mask };
-    // let mut memory = [mask.clone(); 100];
-    let mut memory = [mask.clone(); 65_536];
+    let mut memory: HashMap<usize, Mask> = Default::default();
 
     for (left, right) in v.iter() {
         if left.starts_with("mask") {
@@ -237,10 +236,8 @@ fn part2() {
 
             let mut done: Vec<Mask> = vec![];
             let mut masks: VecDeque<Mask> = Default::default();
-            let uuugggghhh = address_mask.or2(&mask);
-            // println!("starting with = {}", uuugggghhh);
-            // masks.push_back(mask);
-            masks.push_back(uuugggghhh);
+            let initial_address_mask = address_mask.or2(&mask);
+            masks.push_back(initial_address_mask);
 
             while !masks.is_empty() {
                 let mut mask = masks.pop_front().unwrap();
@@ -252,31 +249,24 @@ fn part2() {
                     }
                 };
 
-                // println!("copy_index = {}", copy_index);
                 let mut one_mask = mask.clone();
                 one_mask.mask[copy_index] = Bit::One;
-                // println!("one_mask = {}", one_mask);
                 masks.push_back(one_mask);
 
                 mask.mask[copy_index] = Bit::Zero;
-                // println!("    mask = {}", mask);
                 masks.push_back(mask);
             }
 
-            // println!("done.len() = {}", done.len());
-
-            // println!("done = {:#?}", done.iter().map(|mask| usize::from(*mask)).collect::<Vec<usize>>());
-
             for mask in done {
-                // let mask = mask.or(&address_mask);
                 let address = usize::from(mask);
-                memory[address] = value_mask;
-                // println!("writing to address {}; value = {:?}", address, value_mask);
+                memory.insert(address, value_mask);
             }
         }
     }
 
-    let sum: usize = memory.iter().map(|mask| usize::from(*mask)).sum();
+    let sum: usize = memory
+        .iter()
+        .map(|(_address, mask)| usize::from(*mask))
+        .sum();
     println!("part2 = {}", sum);
-    // println!("memory = {:#?}", memory.iter().map(|mask| usize::from(*mask)).collect::<Vec<usize>>());
 }
