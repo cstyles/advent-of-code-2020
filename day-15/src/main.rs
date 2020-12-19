@@ -1,5 +1,8 @@
+use std::collections::HashMap;
+
 fn main() {
     part1();
+    part2();
 }
 
 fn part1() {
@@ -17,9 +20,11 @@ fn part1() {
     // println!("{:?}", numbers);
 
     for round_number in start..2020 {
-        // println!("round_number = {}", round_number);
         let last_number = numbers[round_number];
-        // println!("last_number = {}", last_number);
+        // println!(
+        //     "round_number = {}; last_number = {}",
+        //     round_number, last_number
+        // );
 
         let i = numbers
             .iter()
@@ -29,11 +34,11 @@ fn part1() {
 
         match i {
             None => {
-                // println!("first time encountered, pushing 0");
+                // println!("{} hasn't been said", last_number);
                 numbers.push(0)
             }
             Some(i) => {
-                // println!("encountered {} numbers ago", i);
+                // println!("{} encountered {} rounds ago", last_number, i + 1);
                 numbers.push(i + 1); // need to add 1 b/c skip(1)
             }
         }
@@ -41,4 +46,42 @@ fn part1() {
     }
 
     println!("part1 = {}", numbers[2019]); // 1 less to account for 1-based indexing
+}
+
+fn part2() {
+    let mut numbers: HashMap<usize, usize> = Default::default();
+    // numbers.insert(0, 0);
+    // numbers.insert(3, 1);
+
+    numbers.insert(0, 0);
+    numbers.insert(13, 1);
+    numbers.insert(1, 2);
+    numbers.insert(8, 3);
+    numbers.insert(6, 4);
+
+    let mut last_number = 15;
+
+    for round_number in 5..29999999 {
+        // println!(
+        //     "round_number = {}; last_number = {}",
+        //     round_number, last_number
+        // );
+
+        match numbers.get(&last_number) {
+            None => {
+                // println!("{} hasn't been said", last_number);
+                numbers.insert(last_number, round_number);
+                last_number = 0;
+            }
+            Some(last_encountered) => {
+                let diff = round_number - last_encountered;
+                // println!("{} was encountered {} rounds ago", last_number, diff);
+                numbers.insert(last_number, round_number);
+                last_number = diff;
+            }
+        }
+        // println!();
+    }
+
+    println!("part2 = {}", last_number);
 }
