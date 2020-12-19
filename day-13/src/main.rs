@@ -2,6 +2,7 @@ static INPUT: &str = include_str!("../input.txt");
 
 fn main() {
     part1();
+    part2();
 }
 
 fn part1() {
@@ -21,4 +22,39 @@ fn part1() {
         .unwrap();
 
     println!("part1 = {}", bus_id * until);
+}
+
+fn part2() {
+    let mut pairs: Vec<(usize, usize)> = INPUT
+        .lines()
+        .skip(1)
+        .next()
+        .unwrap()
+        .split(',')
+        .enumerate()
+        .map(|(i, id)| (i, id.parse::<usize>().ok()))
+        .filter(|(_i, id)| id.is_some())
+        .map(|(i, id)| (i, id.unwrap()))
+        .collect();
+
+    pairs.sort_by(|x, y| y.1.cmp(&x.1));
+
+    let mut ts = pairs[0].1 - pairs[0].0;
+
+    'outer: loop {
+        let mut jump_by = pairs[0].1;
+
+        for (i, id) in pairs.iter().skip(1) {
+            if (ts + i) % id != 0 {
+                ts += jump_by;
+                continue 'outer;
+            } else {
+                jump_by *= id;
+            }
+        }
+
+        break;
+    }
+
+    println!("part2 = {}", ts);
 }
