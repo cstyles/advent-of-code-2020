@@ -1,4 +1,4 @@
-use std::collections::HashMap;
+use fnv::FnvHashMap;
 
 fn main() {
     part1();
@@ -49,7 +49,7 @@ fn part1() {
 }
 
 fn part2() {
-    let mut numbers: HashMap<usize, usize> = Default::default();
+    let mut numbers = FnvHashMap::default();
     // numbers.insert(0, 0);
     // numbers.insert(3, 1);
 
