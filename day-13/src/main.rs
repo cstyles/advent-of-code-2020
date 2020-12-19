@@ -32,9 +32,10 @@ fn part2() {
         .unwrap()
         .split(',')
         .enumerate()
-        .map(|(i, id)| (i, id.parse::<usize>().ok()))
-        .filter(|(_i, id)| id.is_some())
-        .map(|(i, id)| (i, id.unwrap()))
+        .filter_map(|(i, id)| match id.parse() {
+            Ok(id) => Some((i, id)),
+            Err(_err) => None,
+        })
         .collect();
 
     pairs.sort_by(|x, y| y.1.cmp(&x.1));
