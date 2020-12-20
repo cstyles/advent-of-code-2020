@@ -1,14 +1,14 @@
 use std::collections::{HashMap, HashSet};
 use std::convert::From;
-use std::ops::Range;
+use std::ops::RangeInclusive;
 
 static INPUT: &str = include_str!("../input.txt");
 
-#[derive(Debug, Default)]
+#[derive(Debug)]
 struct Field<'a> {
     name: &'a str,
-    range1: Range<usize>,
-    range2: Range<usize>,
+    range1: RangeInclusive<usize>,
+    range2: RangeInclusive<usize>,
 }
 
 impl<'a> From<&'a str> for Field<'a> {
@@ -34,11 +34,11 @@ impl<'a> From<&'a str> for Field<'a> {
     }
 }
 
-fn range_str_to_range(string: &str) -> Range<usize> {
+fn range_str_to_range(string: &str) -> RangeInclusive<usize> {
     let mut iter = string.split('-').map(|r| r.parse().unwrap());
     let lower = iter.next().unwrap();
-    let upper = iter.next().unwrap() + 1; // inclusive
-    lower..upper
+    let upper = iter.next().unwrap();
+    lower..=upper
 }
 
 fn main() {
@@ -49,7 +49,7 @@ fn main() {
 fn part1() {
     let lines = INPUT.lines();
 
-    let ranges: Vec<Range<usize>> =
+    let ranges: Vec<RangeInclusive<usize>> =
         lines
             .clone()
             .take(20)
@@ -91,7 +91,7 @@ fn part2() {
         possible_field_names.push(field_name_set.clone());
     }
 
-    let ranges: Vec<Range<usize>> = fields.iter().fold(vec![], |mut ranges, field| {
+    let ranges: Vec<RangeInclusive<usize>> = fields.iter().fold(vec![], |mut ranges, field| {
         ranges.push(field.range1.clone());
         ranges.push(field.range2.clone());
         ranges
