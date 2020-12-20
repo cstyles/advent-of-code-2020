@@ -1,3 +1,4 @@
+use std::collections::{HashMap, HashSet};
 use std::convert::From;
 use std::ops::Range;
 
@@ -35,11 +36,14 @@ impl<'a> From<&'a str> for Field<'a> {
 
 fn range_str_to_range(string: &str) -> Range<usize> {
     let mut iter = string.split('-').map(|r| r.parse().unwrap());
-    iter.next().unwrap()..iter.next().unwrap()
+    let lower = iter.next().unwrap();
+    let upper = iter.next().unwrap() + 1; // inclusive
+    lower..upper
 }
 
 fn main() {
     part1();
+    part2();
 }
 
 fn part1() {
@@ -71,4 +75,99 @@ fn part1() {
         });
 
     println!("part1 = {}", sum);
+}
+
+fn part2() {
+    let fields: Vec<Field> = INPUT
+        .lines()
+        .take(20)
+        .map(|line| Field::from(line))
+        .collect();
+
+    let field_name_set: HashSet<&str> = fields.iter().map(|field| field.name).collect();
+
+    let mut possible_field_names: Vec<HashSet<&str>> = Vec::with_capacity(20);
+    for _ in 0..20 {
+        possible_field_names.push(field_name_set.clone());
+    }
+
+    let ranges: Vec<Range<usize>> = fields.iter().fold(vec![], |mut ranges, field| {
+        ranges.push(field.range1.clone());
+        ranges.push(field.range2.clone());
+        ranges
+    });
+
+    let lines: Vec<&str> = INPUT
+        .lines()
+        .skip(25)
+        .filter(|line| {
+            for num in line.split(',').filter_map(|num| num.parse::<usize>().ok()) {
+                let mut valid_number = false;
+                for range in ranges.iter() {
+                    if range.contains(&num) {
+                        valid_number = true;
+                        break;
+                    }
+                }
+
+                if !valid_number {
+                    return false;
+                }
+            }
+
+            true
+        })
+        .collect();
+
+    let numbers: Vec<usize> = lines
+        .iter()
+        .flat_map(|line| line.split(','))
+        .filter_map(|num| num.parse().ok())
+        .collect();
+
+    for (i, number) in numbers.iter().enumerate() {
+        let position = i % 20;
+        let possible_fields = possible_field_names.get_mut(position).unwrap();
+
+        for field in fields.iter() {
+            if !field.range1.contains(&number) && !field.range2.contains(&number) {
+                possible_fields.remove(field.name);
+            }
+        }
+    }
+
+    // Use definite knowledge to whittle down possible field names
+    let mut done = HashMap::<&str, usize>::with_capacity(20);
+    while done.len() < 20 {
+        for (position, fields) in possible_field_names.iter_mut().enumerate() {
+            if fields.len() == 1 {
+                done.insert(fields.iter().next().unwrap(), position);
+            } else {
+                for (name, _position) in done.iter() {
+                    fields.remove(*name);
+                }
+            }
+        }
+    }
+
+    let my_ticket: Vec<usize> = INPUT
+        .lines()
+        .skip(22)
+        .next()
+        .unwrap()
+        .split(',')
+        .filter_map(|num| num.parse().ok())
+        .collect();
+
+    let positions: Vec<usize> = done.iter()
+        .filter(|(field_name, _position)| field_name.starts_with("departure"))
+        .map(|(_field_name, position)| *position)
+        .collect();
+
+    let mut product = 1;
+    for position in positions {
+        product *= my_ticket[position];
+    }
+
+    println!("part2 = {}", product);
 }
