@@ -53,7 +53,7 @@ impl From<&Tile> for u8 {
 }
 
 impl Tile {
-    fn next(&self, occupied_neighbors: u8) -> Self {
+    fn next_1(&self, occupied_neighbors: u8) -> Self {
         use Tile::*;
 
         match (self, occupied_neighbors) {
@@ -61,6 +61,18 @@ impl Tile {
             (Empty, 0) => Occupied,
             (Empty, _) => Empty,
             (Occupied, 4..=8) => Empty,
+            (Occupied, _) => Occupied,
+        }
+    }
+
+    fn next_2(&self, visible_neighbors: u8) -> Self {
+        use Tile::*;
+
+        match (self, visible_neighbors) {
+            (Floor, _) => Floor,
+            (Empty, 0) => Occupied,
+            (Empty, _) => Empty,
+            (Occupied, 5..=8) => Empty,
             (Occupied, _) => Occupied,
         }
     }
@@ -72,14 +84,28 @@ struct Map {
 }
 
 impl Map {
-    fn next(&self) -> Self {
+    fn next_1(&self) -> Self {
         let mut new = Map::default();
         for y in 0..NUMBER_OF_ROWS {
             new.map.push(vec![]);
 
             for x in 0..NUMBER_OF_COLUMNS {
                 let occupied_neighbors = occupied_neighbors(&self.map, y, x);
-                new.map[y].push(self.map[y][x].next(occupied_neighbors));
+                new.map[y].push(self.map[y][x].next_1(occupied_neighbors));
+            }
+        }
+        new
+    }
+
+    fn next_2(&self) -> Self {
+        let mut new = Map::default();
+        for y in 0..NUMBER_OF_ROWS {
+            new.map.push(vec![]);
+
+            for x in 0..NUMBER_OF_COLUMNS {
+                let visible_neighbors = visible_neighbors(&self.map, y, x);
+                // println!("({}, {}) => {}", y, x, visible_neighbors);
+                new.map[y].push(self.map[y][x].next_2(visible_neighbors));
             }
         }
         new
@@ -112,6 +138,7 @@ impl fmt::Display for Map {
 
 fn main() {
     part1();
+    part2();
 }
 
 fn part1() {
@@ -123,14 +150,33 @@ fn part1() {
         .collect();
 
     let mut map = Map { map };
-    let mut next_map = map.next();
+    let mut next_map = map.next_1();
 
     while map != next_map {
         map.map = next_map.map;
-        next_map = map.next();
+        next_map = map.next_1();
     }
 
     println!("part1 = {}", map.occupied_seats());
+}
+
+fn part2() {
+    let map: Vec<Vec<Tile>> = INPUT
+        .lines()
+        .map(str::chars)
+        .map(|chars| chars.map(Tile::from))
+        .map(Iterator::collect)
+        .collect();
+
+    let mut map = Map { map };
+    let mut next_map = map.next_2();
+
+    while map != next_map {
+        map.map = next_map.map;
+        next_map = map.next_2();
+    }
+
+    println!("part2 = {}", map.occupied_seats());
 }
 
 fn occupied_neighbors(map: &[Vec<Tile>], y: usize, x: usize) -> u8 {
@@ -182,4 +228,135 @@ fn occupied_neighbors(map: &[Vec<Tile>], y: usize, x: usize) -> u8 {
                 + u8::from(&map[y + 1][x + 1])
         }
     }
+}
+
+fn visible_neighbors(map: &[Vec<Tile>], y: usize, x: usize) -> u8 {
+    up_left_neighbor(map, y, x)
+        + up_neighbor(map, y, x)
+        + up_right_neighbor(map, y, x)
+        + left_neighbor(map, y, x)
+        + right_neighbor(map, y, x)
+        + down_left_neighbor(map, y, x)
+        + down_neighbor(map, y, x)
+        + down_right_neighbor(map, y, x)
+}
+
+fn up_left_neighbor(map: &[Vec<Tile>], mut y: usize, mut x: usize) -> u8 {
+    if y == 0 || x == 0 {
+        return 0;
+    }
+
+    y -= 1;
+    x -= 1;
+
+    while y > 0 && x > 0 && map[y][x] == Tile::Floor {
+        y -= 1;
+        x -= 1;
+    }
+
+    u8::from(&map[y][x])
+}
+
+fn up_neighbor(map: &[Vec<Tile>], mut y: usize, x: usize) -> u8 {
+    if y == 0 {
+        return 0;
+    }
+
+    y -= 1;
+
+    while y > 0 && map[y][x] == Tile::Floor {
+        y -= 1;
+    }
+
+    u8::from(&map[y][x])
+}
+
+fn up_right_neighbor(map: &[Vec<Tile>], mut y: usize, mut x: usize) -> u8 {
+    if y == 0 || x == NUMBER_OF_COLUMNS - 1 {
+        return 0;
+    }
+
+    y -= 1;
+    x += 1;
+
+    while y > 0 && x < NUMBER_OF_COLUMNS - 1 && map[y][x] == Tile::Floor {
+        y -= 1;
+        x += 1;
+    }
+
+    u8::from(&map[y][x])
+}
+
+fn left_neighbor(map: &[Vec<Tile>], y: usize, mut x: usize) -> u8 {
+    if x == 0 {
+        return 0;
+    }
+
+    x -= 1;
+
+    while x > 0 && map[y][x] == Tile::Floor {
+        x -= 1;
+    }
+
+    u8::from(&map[y][x])
+}
+
+fn right_neighbor(map: &[Vec<Tile>], y: usize, mut x: usize) -> u8 {
+    if x == NUMBER_OF_COLUMNS - 1 {
+        return 0;
+    }
+
+    x += 1;
+
+    while x < NUMBER_OF_COLUMNS - 1 && map[y][x] == Tile::Floor {
+        x += 1;
+    }
+
+    u8::from(&map[y][x])
+}
+
+fn down_left_neighbor(map: &[Vec<Tile>], mut y: usize, mut x: usize) -> u8 {
+    if y == NUMBER_OF_ROWS - 1 || x == 0 {
+        return 0;
+    }
+
+    y += 1;
+    x -= 1;
+
+    while y < NUMBER_OF_ROWS - 1 && x > 0 && map[y][x] == Tile::Floor {
+        y += 1;
+        x -= 1;
+    }
+
+    u8::from(&map[y][x])
+}
+
+fn down_neighbor(map: &[Vec<Tile>], mut y: usize, x: usize) -> u8 {
+    if y == NUMBER_OF_ROWS - 1 {
+        return 0;
+    }
+
+    y += 1;
+
+    while y < NUMBER_OF_ROWS - 1 && map[y][x] == Tile::Floor {
+        y += 1;
+    }
+
+    u8::from(&map[y][x])
+}
+
+fn down_right_neighbor(map: &[Vec<Tile>], mut y: usize, mut x: usize) -> u8 {
+    if y == NUMBER_OF_ROWS - 1 || x == NUMBER_OF_COLUMNS - 1 {
+        return 0;
+    }
+
+    y += 1;
+    x += 1;
+
+    while y < NUMBER_OF_ROWS - 1 && x < NUMBER_OF_COLUMNS - 1 && map[y][x] == Tile::Floor {
+        y += 1;
+        x += 1;
+    }
+
+    u8::from(&map[y][x])
 }
