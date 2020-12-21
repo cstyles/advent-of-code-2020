@@ -49,16 +49,15 @@ fn main() {
 fn part1() {
     let lines = INPUT.lines();
 
-    let ranges: Vec<RangeInclusive<usize>> =
-        lines
-            .clone()
-            .take(20)
-            .map(|line| Field::from(line))
-            .fold(vec![], |mut ranges, field| {
-                ranges.push(field.range1);
-                ranges.push(field.range2);
-                ranges
-            });
+    let ranges: Vec<RangeInclusive<usize>> = lines
+        .clone()
+        .take(20)
+        .map(|line| Field::from(line))
+        .fold(vec![], |mut ranges, field| {
+            ranges.push(field.range1);
+            ranges.push(field.range2);
+            ranges
+        });
 
     let lines = lines.skip(5);
     let sum: usize = lines
@@ -159,7 +158,8 @@ fn part2() {
         .filter_map(|num| num.parse().ok())
         .collect();
 
-    let positions: Vec<usize> = done.iter()
+    let positions: Vec<usize> = done
+        .iter()
         .filter(|(field_name, _position)| field_name.starts_with("departure"))
         .map(|(_field_name, position)| *position)
         .collect();
