@@ -102,6 +102,7 @@ fn part2() {
     println!("part2 = {}", sum);
 }
 
+// Recursively parse an expression into an expression tree
 fn parse_expr(string: &str) -> Node {
     if string.len() == 0 {
         panic!("empty expr");
@@ -142,6 +143,7 @@ fn parse_expr(string: &str) -> Node {
     }
 }
 
+// Build an expression tree with `node` as its left child
 fn build_up(node: Node, string: &str) -> Node {
     if string.is_empty() {
         return node;
@@ -176,10 +178,11 @@ fn build_up(node: Node, string: &str) -> Node {
     }
 }
 
+// Parse just the expression on the left and return it with the rest of the string
 fn chomp_expr(string: &str) -> (&str, Node) {
     match string.chars().next().unwrap() {
         c @ '0'..='9' => {
-            let value = parse_literal(c);
+            let value = parse_number(c);
             let rest = &string[1..];
             (rest, value)
         }
@@ -188,7 +191,7 @@ fn chomp_expr(string: &str) -> (&str, Node) {
     }
 }
 
-fn parse_literal(c: char) -> Node {
+fn parse_number(c: char) -> Node {
     let value = c.to_digit(10).unwrap() as u64;
 
     Node::Value(value)
@@ -225,7 +228,6 @@ fn parse_parenthetical(string: &str) -> (&str, Node) {
 }
 
 fn eval_tree(node: Node) -> u64 {
-    // use Node::*;
     use Operation::*;
 
     match node {
