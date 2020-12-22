@@ -115,7 +115,7 @@ fn parse_expr(string: &str) -> Node {
     let (rest, operation) = parse_operation(rest);
 
     match operation {
-        Operation::Add => {
+        Operation::Multiply => {
             let right = parse_expr(rest);
             let left = Box::new(left);
             let right = Box::new(right);
@@ -126,7 +126,7 @@ fn parse_expr(string: &str) -> Node {
                 right,
             })
         }
-        Operation::Multiply => {
+        Operation::Add => {
             let (rest, right) = chomp_expr(rest);
             let left = Box::new(left);
             let right = Box::new(right);
@@ -151,7 +151,7 @@ fn build_up(node: Node, string: &str) -> Node {
     let left = Box::new(node);
 
     match operation {
-        Operation::Add => {
+        Operation::Multiply => {
             let right = parse_expr(rest);
             let right = Box::new(right);
 
@@ -161,7 +161,7 @@ fn build_up(node: Node, string: &str) -> Node {
                 right,
             })
         }
-        Operation::Multiply => {
+        Operation::Add => {
             let (rest, right) = chomp_expr(rest);
             let right = Box::new(right);
 
