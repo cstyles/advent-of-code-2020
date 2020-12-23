@@ -1,26 +1,24 @@
 use std::collections::HashMap;
-use std::convert::From;
+// use std::convert::From;
 
-static INPUT: &str = include_str!("../input.txt");
+// static INPUT: &str = include_str!("../input-part1.txt");
+// static INPUT: &str = include_str!("../input-part2.txt");
 // static INPUT: &str = include_str!("../test-input.txt");
+// static INPUT: &str = include_str!("../test-input2.txt");
+static INPUT: &str = include_str!("../test-input3.txt");
+// static INPUT: &str = include_str!("../my-input.txt");
 
 #[derive(Debug)]
 enum Rule<'a> {
-    Literal(&'a str),                      // 0: "a"
-    Alias(&'a str),                        // 0: 1
-    JustSeq(Sequence<'a>),                 // 0: 1 2
-    Either(&'a str, &'a str),              // 0: 1 | 2
-    EitherSeq(Sequence<'a>, Sequence<'a>), // 0: 1 2 | 3 4
+    Literal(&'a str),       // 0: "a"
+    Alias(&'a str),         // 0: 1
+    Sequence(Vec<&'a str>), // 0: 1 2
+    // RecursiveSequence(Vec<&'a str>),
+    Alt(Vec<Box<Rule<'a>>>), // 0: 1 | 2
 }
 
-#[derive(Debug)]
-struct Sequence<'a> {
-    first: &'a str,
-    second: &'a str,
-}
-
-impl<'a> From<&'a str> for Rule<'a> {
-    fn from(string: &'a str) -> Self {
+impl<'a> Rule<'a> {
+    fn new(string: &'a str, rule_number: &str) -> Self {
         let string = string.trim();
 
         if string == "\"a\"" {
@@ -28,35 +26,18 @@ impl<'a> From<&'a str> for Rule<'a> {
         } else if string == "\"b\"" {
             Rule::Literal("b")
         } else if string.contains('|') {
-            let mut bar_splits = string.split('|');
+            let alt_parts = string
+                .split('|')
+                .map(|s| Box::new(Rule::new(s.trim(), rule_number)))
+                .collect();
 
-            let left = bar_splits.next().unwrap().trim();
-
-            if left.contains(' ') {
-                let mut space_splits = left.split(' ');
-                let first = space_splits.next().unwrap();
-                let second = space_splits.next().unwrap();
-                let left_sequence = Sequence { first, second };
-
-                let right = bar_splits.next().unwrap().trim();
-                let mut space_splits = right.split(' ');
-                let first = space_splits.next().unwrap();
-                let second = space_splits.next().unwrap();
-                let right_sequence = Sequence { first, second };
-
-                Rule::EitherSeq(left_sequence, right_sequence)
-            } else {
-                let right = bar_splits.next().unwrap().trim();
-
-                Rule::Either(left, right)
-            }
+            Rule::Alt(alt_parts)
         } else if string.contains(' ') {
-            let mut space_splits = string.split(' ');
-            let first = space_splits.next().unwrap();
-            let second = space_splits.next().unwrap();
-            let sequence = Sequence { first, second };
+            let seq_parts: Vec<&str> = string.split(' ').collect();
+            // let recursive = seq_parts.contains(&rule_number);
+            // println!("rule_number: {}; recursive: {}", rule_number, recursive);
 
-            Rule::JustSeq(sequence)
+            Rule::Sequence(seq_parts)
         } else {
             Rule::Alias(string)
         }
@@ -77,29 +58,41 @@ fn part1() {
         .map(|line| {
             let mut splits = line.split(": ");
             let rule_number = splits.next().unwrap();
-            let rule = splits.next().unwrap().into();
+            let rule = Rule::new(splits.next().unwrap(), rule_number);
 
             (rule_number, rule)
         })
         .collect();
 
+    // println!("{:#?}", rules);
+
     let part1 = string_section
         .lines()
-        .filter_map(|line| parse(&rules, "0", line).ok())
+        .map(|line| { println!("{}", line); line })
+        .filter_map(|line| parse_rule_number(&rules, "0", line).ok())
         .filter(|(rest, _parsed)| rest.is_empty())
         .count();
 
     println!("part1 = {}", part1);
 }
 
-fn parse<'a>(
-    rules: &HashMap<&'a str, Rule<'a>>,
+fn parse_rule_number<'a>(
+    rules: &'a HashMap<&str, Rule>,
     rule_number: &str,
+    string: &'a str,
+) -> Result<(&'a str, &'a str), ()> {
+    let rule = rules.get(rule_number).unwrap();
+    parse_rule(rules, rule, string)
+}
+
+fn parse_rule<'a>(
+    rules: &'a HashMap<&str, Rule>,
+    rule: &'a Rule,
     string: &'a str,
 ) -> Result<(&'a str, &'a str), ()> {
     use Rule::*;
 
-    match rules.get(rule_number).unwrap() {
+    match rule {
         Literal(literal) => {
             if string.starts_with(*literal) {
                 let rest = &string[literal.len()..];
@@ -110,25 +103,38 @@ fn parse<'a>(
                 Err(())
             }
         }
-        Alias(alias) => parse(rules, alias, string),
-        JustSeq(Sequence { first, second }) => {
-            parse(rules, first, string).and_then(|(rest, _parsed)| parse(rules, second, rest))
-        }
-        Either(left, right) => match parse(rules, left, string) {
-            result @ Ok(_) => result,
-            Err(_) => parse(rules, right, string),
-        },
-        EitherSeq(left, right) => {
-            let Sequence { first, second } = left;
-            let left_result =
-                parse(rules, first, string).and_then(|(rest, _parsed)| parse(rules, second, rest));
+        Alias(alias) => parse_rule_number(rules, alias, string),
+        Sequence(sequence) => {
+            let mut rest = string;
+            let mut parsed = String::new();
 
-            if left_result.is_ok() {
-                return left_result;
+            for alias in sequence {
+                let result = parse_rule_number(rules, alias, rest);
+
+                match result {
+                    Ok((rest2, parsed2)) => {
+                        rest = rest2;
+                        parsed.push_str(parsed2);
+                    }
+                    Err(err) => return Err(err),
+                };
             }
 
-            let Sequence { first, second } = right;
-            parse(rules, first, string).and_then(|(rest, _parsed)| parse(rules, second, rest))
+            Ok((rest, "ugh"))
+        }
+        Alt(parts) => {
+            for rule in parts {
+                let result = parse_rule(rules, rule, string);
+                // println!("Alt({:?}) => {:?}", rule, result);
+                match result {
+                    Ok(_) => {
+                        return result
+                    }
+                    Err(_) => continue,
+                }
+            }
+
+            Err(())
         }
     }
 }
