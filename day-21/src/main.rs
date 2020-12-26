@@ -30,10 +30,6 @@ impl<'a> From<&'a str> for Food<'a> {
 }
 
 fn main() {
-    part1();
-}
-
-fn part1() {
     let mut foods: Vec<Food> = INPUT.lines().map(|line| Food::from(line)).collect();
 
     let all_allergens: HashSet<&str> = foods.iter().fold(Default::default(), |acc, elm| {
@@ -69,4 +65,14 @@ fn part1() {
 
     let count = foods.iter().flat_map(|food| &food.ingredients).count();
     println!("part1 = {}", count);
+
+    let mut pairs: Vec<(&str, &str)> = allergen_map.iter().map(|(a, b)| (*a, *b)).collect();
+    pairs.sort();
+
+    let ingredients: Vec<&str> = pairs
+        .iter()
+        .map(|(_ingredient, allergen)| *allergen)
+        .collect();
+
+    println!("part2 = {}", ingredients.join(","));
 }
