@@ -204,29 +204,27 @@ fn occupied_neighbors(map: &[Vec<Tile>], y: usize, x: usize) -> u8 {
                 + u8::from(&map[y - 1][x])
                 + u8::from(&map[y - 1][x + 1])
         }
+    } else if x == 0 {
+        u8::from(&map[y - 1][x])
+            + u8::from(&map[y - 1][x + 1])
+            + u8::from(&map[y][x + 1])
+            + u8::from(&map[y + 1][x])
+            + u8::from(&map[y + 1][x + 1])
+    } else if x == NUMBER_OF_COLUMNS - 1 {
+        u8::from(&map[y - 1][x - 1])
+            + u8::from(&map[y - 1][x])
+            + u8::from(&map[y][x - 1])
+            + u8::from(&map[y + 1][x])
+            + u8::from(&map[y + 1][x - 1])
     } else {
-        if x == 0 {
-            u8::from(&map[y - 1][x])
-                + u8::from(&map[y - 1][x + 1])
-                + u8::from(&map[y][x + 1])
-                + u8::from(&map[y + 1][x])
-                + u8::from(&map[y + 1][x + 1])
-        } else if x == NUMBER_OF_COLUMNS - 1 {
-            u8::from(&map[y - 1][x - 1])
-                + u8::from(&map[y - 1][x])
-                + u8::from(&map[y][x - 1])
-                + u8::from(&map[y + 1][x])
-                + u8::from(&map[y + 1][x - 1])
-        } else {
-            u8::from(&map[y - 1][x - 1])
-                + u8::from(&map[y - 1][x])
-                + u8::from(&map[y - 1][x + 1])
-                + u8::from(&map[y][x - 1])
-                + u8::from(&map[y][x + 1])
-                + u8::from(&map[y + 1][x - 1])
-                + u8::from(&map[y + 1][x])
-                + u8::from(&map[y + 1][x + 1])
-        }
+        u8::from(&map[y - 1][x - 1])
+            + u8::from(&map[y - 1][x])
+            + u8::from(&map[y - 1][x + 1])
+            + u8::from(&map[y][x - 1])
+            + u8::from(&map[y][x + 1])
+            + u8::from(&map[y + 1][x - 1])
+            + u8::from(&map[y + 1][x])
+            + u8::from(&map[y + 1][x + 1])
     }
 }
 

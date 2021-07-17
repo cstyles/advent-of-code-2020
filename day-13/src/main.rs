@@ -27,8 +27,7 @@ fn part1() {
 fn part2() {
     let mut pairs: Vec<(usize, usize)> = INPUT
         .lines()
-        .skip(1)
-        .next()
+        .nth(1)
         .unwrap()
         .split(',')
         .enumerate()

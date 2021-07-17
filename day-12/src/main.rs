@@ -63,8 +63,8 @@ fn part1() {
             "S" => position.y -= value,
             "E" => position.x += value,
             "W" => position.x -= value,
-            "L" => facing = facing + value,
-            "R" => facing = facing + 360 - value,
+            "L" => facing += value,
+            "R" => facing += 360 - value,
             "F" => {
                 match facing % 360 {
                     0 => position.x += value,   // West

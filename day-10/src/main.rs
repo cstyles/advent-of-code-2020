@@ -5,7 +5,7 @@ static INPUT: &str = include_str!("../input.txt");
 fn main() {
     let mut adapters: Vec<i64> = INPUT.lines().map(|line| line.parse().unwrap()).collect();
 
-    adapters.sort();
+    adapters.sort_unstable();
 
     let diff = part1(&adapters);
     println!("part1 = {}", diff);

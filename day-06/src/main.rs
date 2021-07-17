@@ -28,7 +28,7 @@ fn solve_parts(group: &str) -> (usize, usize) {
             answers
         });
 
-    let part1 = answers.iter().count();
+    let part1 = answers.len();
 
     let part2 = answers
         .iter()

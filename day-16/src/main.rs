@@ -52,7 +52,7 @@ fn part1() {
     let ranges: Vec<RangeInclusive<usize>> = lines
         .clone()
         .take(20)
-        .map(|line| Field::from(line))
+        .map(Field::from)
         .fold(vec![], |mut ranges, field| {
             ranges.push(field.range1);
             ranges.push(field.range2);
@@ -80,7 +80,7 @@ fn part2() {
     let fields: Vec<Field> = INPUT
         .lines()
         .take(20)
-        .map(|line| Field::from(line))
+        .map(Field::from)
         .collect();
 
     let field_name_set: HashSet<&str> = fields.iter().map(|field| field.name).collect();
@@ -151,8 +151,7 @@ fn part2() {
 
     let my_ticket: Vec<usize> = INPUT
         .lines()
-        .skip(22)
-        .next()
+        .nth(22)
         .unwrap()
         .split(',')
         .filter_map(|num| num.parse().ok())

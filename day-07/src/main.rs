@@ -1,5 +1,3 @@
-#[macro_use]
-extern crate maplit;
 use maplit::hashset;
 
 use regex::Regex;
@@ -103,14 +101,14 @@ fn part2() {
         }
     }
 
-    let mut dyn_prog: HashMap<&str, i32> = Default::default();
-    let total = recursive_bags(&mut dyn_prog, &hm, "shiny gold");
+    let dyn_prog: HashMap<&str, i32> = Default::default();
+    let total = recursive_bags(&dyn_prog, &hm, "shiny gold");
 
     println!("total: {}", total);
 }
 
 fn recursive_bags(
-    mut dyn_prog: &HashMap<&str, i32>,
+    dyn_prog: &HashMap<&str, i32>,
     bag_data: &HashMap<&str, HashSet<(i32, &str)>>,
     bagtype: &str,
 ) -> i32 {
@@ -124,7 +122,7 @@ fn recursive_bags(
                 for directly_contained in set {
                     let (number, bagtype) = directly_contained;
                     total += number;
-                    total += number * recursive_bags(&mut dyn_prog, &bag_data, bagtype);
+                    total += number * recursive_bags(&dyn_prog, &bag_data, bagtype);
                 }
             }
             None => total = 0,

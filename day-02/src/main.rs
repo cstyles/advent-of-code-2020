@@ -54,20 +54,20 @@ fn main() {
     let passwords: Vec<Password> = INPUT
         .trim()
         .lines()
-        .map(|line| Password::from(line))
+        .map(Password::from)
         .collect();
 
     part1(&passwords);
     part2(&passwords);
 }
 
-fn part1<'a>(passwords: &'a [Password]) {
+fn part1(passwords: &[Password]) {
     let count: usize = passwords.iter().filter(|p| p.is_valid_part_1()).count();
 
     println!("part1 = {}", count);
 }
 
-fn part2<'a>(passwords: &'a [Password]) {
+fn part2(passwords: &[Password]) {
     let count: usize = passwords.iter().filter(|p| p.is_valid_part_2()).count();
 
     println!("part2 = {}", count);

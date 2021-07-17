@@ -49,17 +49,17 @@ impl<'a> Passport<'a> {
 
     fn is_valid_part_2(&self) -> Option<bool> {
         let byr: i32 = self.byr?.parse().ok()?;
-        if byr < 1920 || byr > 2002 {
+        if !(1920..=2002).contains(&byr) {
             return Some(false);
         }
 
         let iyr: i32 = self.iyr?.parse().ok()?;
-        if iyr < 2010 || iyr > 2020 {
+        if !(2010..=2020).contains(&iyr) {
             return Some(false);
         }
 
         let eyr: i32 = self.eyr?.parse().ok()?;
-        if eyr < 2020 || eyr > 2030 {
+        if !(2020..=2030).contains(&eyr) {
             return Some(false);
         }
 

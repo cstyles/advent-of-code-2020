@@ -106,8 +106,8 @@ impl From<&str> for Mask {
         let mut mask = [Bit::Zero; 36];
         let mut ugh = string.chars().map(Bit::from).rev();
 
-        for i in 0..36 {
-            mask[i] = ugh.next().unwrap();
+        for bit in mask.iter_mut() {
+            *bit = ugh.next().unwrap();
         }
 
         Mask { mask }
@@ -122,7 +122,7 @@ impl From<Mask> for usize {
         for i in 0..36 {
             match mask.mask[i] {
                 Bit::Zero => (),
-                Bit::One => total += 1 * multiplier,
+                Bit::One => total += multiplier,
                 Bit::Copy => panic!(),
             }
 
@@ -143,30 +143,18 @@ impl fmt::Display for Mask {
 
 impl Mask {
     fn or(&self, other: &Self) -> Self {
-        let mut ugh = self
-            .mask
-            .iter()
-            .zip(other.mask.iter())
-            .map(|(left, right)| left.or(&right));
-
         let mut mask = [Bit::Zero; 36];
-        for i in 0..36 {
-            mask[i] = ugh.next().unwrap();
+        for (i, bit) in mask.iter_mut().enumerate() {
+            *bit = self.mask[i].or(&other.mask[i]);
         }
 
         Self { mask }
     }
 
     fn or2(&self, other: &Self) -> Self {
-        let mut ugh = self
-            .mask
-            .iter()
-            .zip(other.mask.iter())
-            .map(|(left, right)| left.or2(&right));
-
         let mut mask = [Bit::Zero; 36];
-        for i in 0..36 {
-            mask[i] = ugh.next().unwrap();
+        for (i, bit) in mask.iter_mut().enumerate() {
+            *bit = self.mask[i].or2(&other.mask[i]);
         }
 
         Self { mask }
@@ -188,7 +176,7 @@ fn part1() {
 
     let mask = [Bit::Zero; 36];
     let mut mask = Mask { mask };
-    let mut memory = [mask.clone(); 65_536];
+    let mut memory = [mask; 65_536];
 
     for (left, right) in v.iter() {
         if left.starts_with("mask") {
@@ -249,7 +237,7 @@ fn part2() {
                     }
                 };
 
-                let mut one_mask = mask.clone();
+                let mut one_mask = mask;
                 one_mask.mask[copy_index] = Bit::One;
                 masks.push_back(one_mask);
 

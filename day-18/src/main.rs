@@ -96,7 +96,7 @@ fn part2() {
     let sum: u64 = lines
         .iter()
         .map(|line| parse_expr(&line))
-        .map(|node| eval_tree(node))
+        .map(eval_tree)
         .sum();
 
     println!("part2 = {}", sum);
@@ -104,7 +104,7 @@ fn part2() {
 
 // Recursively parse an expression into an expression tree
 fn parse_expr(string: &str) -> Node {
-    if string.len() == 0 {
+    if string.is_empty() {
         panic!("empty expr");
     }
 
@@ -202,7 +202,7 @@ fn parse_operation(string: &str) -> (&str, Operation) {
     match string.chars().next().unwrap() {
         '+' => (rest, Operation::Add),
         '*' => (rest, Operation::Multiply),
-        op @ _ => panic!("invalid operation: {}", op),
+        op => panic!("invalid operation: {}", op),
     }
 }
 
