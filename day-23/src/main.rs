@@ -1,151 +1,146 @@
-use std::collections::VecDeque;
-use std::fmt::Debug;
+#![feature(array_windows)]
 
-#[derive(PartialEq, Eq, Clone, Copy)]
-struct Label(u32);
-
-impl Debug for Label {
-    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        Debug::fmt(&self.0, f)
-    }
-}
-
-struct Circle {
-    cups: VecDeque<Label>,
+#[derive(Debug)]
+struct LinkedList<const N: usize> {
+    cups: [u32; N],
     current: usize,
 }
 
-impl Circle {
-    pub fn new(cups: Vec<Label>) -> Self {
+impl<const N: usize> LinkedList<N> {
+    pub fn new(numbers: &[u32]) -> Self {
+        let mut array = [0; N];
+        for [a, b] in numbers.array_windows().copied() {
+            array[a as usize] = b;
+        }
+
+        // Account for last number that wraps around and points to the first number
+        let first = *numbers.first().unwrap();
+        array[*numbers.last().unwrap() as usize] = first;
+
         Self {
-            cups: VecDeque::from(cups),
-            current: 0,
+            cups: array,
+            current: first as usize,
         }
     }
 
-    fn step(&mut self) {
-        // Step 0: Rotate until current cup is on far "left"
-        self.cups.rotate_left(self.current);
-        self.current = 0;
-
+    pub fn step(&mut self) {
         // println!("cups: {:?}", self.cups);
-        // print!("       ");
-        // for _ in 0..self.current {
-        //     print!("   ");
-        // }
-        // println!("^");
 
-        // Step 1: Remove three cups
-        let start = self.current.wrapping_next();
-        let end = start.wrapping_next().wrapping_next().wrapping_next();
-        let mut picked_up: VecDeque<Label> = self.cups.drain(start..end).collect();
-        // println!("pick up: {:?}", picked_up);
+        let plucked = self.pluck();
+        // println!("pick up: {:?}", plucked);
 
-        // Step 2: Find destination
-        let current_label: Label = self.cups[self.current];
-        let mut destination_label: Label = current_label.wrapping_prev();
-        while picked_up.contains(&destination_label) {
-            destination_label = destination_label.wrapping_prev();
-        }
-        // dbg!(destination_label);
-
-        let destination = self
-            .cups
-            .iter()
-            .position(|&cup| cup == destination_label)
-            .unwrap()
-            .wrapping_next();
+        let destination = self.find_destination(plucked);
         // dbg!(destination);
 
-        // Step 3: Place picked up cups at destination
-        let mut right = self.cups.split_off(destination);
-        self.cups.append(&mut picked_up);
-        self.cups.append(&mut right);
+        self.place(plucked, destination);
+        self.next_cup();
+    }
 
-        // Compensate when picked up cups were placed to the "left" of the current cup
-        if destination <= self.current {
-            self.current = self.current.wrapping_next().wrapping_next().wrapping_next();
+    // Pick up three cups and adjust cup spacing
+    pub fn pluck(&mut self) -> [u32; 3] {
+        let mut plucked = [0; 3];
+        plucked[0] = self.cups[self.current];
+        plucked[1] = self.cups[plucked[0] as usize]; // TODO: unnecessary
+        plucked[2] = self.cups[plucked[1] as usize];
+
+        self.cups[self.current] = self.cups[plucked[2] as usize];
+
+        plucked
+    }
+
+    fn find_destination(&self, plucked: [u32; 3]) -> usize {
+        let mut destination = wrapping_prev::<N>(self.current);
+
+        // Skip over plucked cups if necessary
+        while plucked.contains(&(destination as u32)) {
+            destination = wrapping_prev::<N>(destination);
         }
 
-        // Step 4: Select new current cup
-        self.current = self.current.wrapping_next();
+        destination
+    }
+
+    fn place(&mut self, plucked: [u32; 3], destination: usize) {
+        let old_target = self.cups[destination];
+        self.cups[destination] = plucked[0];
+        self.cups[plucked[2] as usize] = old_target;
+    }
+
+    fn next_cup(&mut self) {
+        self.current = self.cups[self.current] as usize;
+    }
+
+    fn order(&self) -> String {
+        let mut start = self.cups[1];
+        let mut string = String::with_capacity(9);
+
+        while start != 1 {
+            let c = char::from_digit(start, 10).unwrap();
+            string.push(c);
+
+            start = self.cups[start as usize];
+        }
+
+        string
+    }
+
+    fn star_product(&self) -> u64 {
+        let a = self.cups[1] as u64;
+        let b = self.cups[a as usize] as u64;
+
+        a * b
     }
 }
 
 fn main() {
     let input = include_str!("../input.txt");
-    let numbers: Vec<Label> = input
+    part1(input);
+    part2(input);
+}
+
+fn part1(input: &str) {
+    let numbers: Vec<u32> = input
         .trim()
         .chars()
-        .map(|c| Label(c.to_digit(10).unwrap()))
+        .map(|c| c.to_digit(10).unwrap())
         .collect();
-    let mut circle = Circle::new(numbers);
 
-    for i in 1..=100 {
+    let mut list = LinkedList::<10>::new(&numbers);
+
+    for _i in 1..=100 {
         // println!("-- move {} --", i);
-        circle.step();
+        list.step();
         // println!();
     }
 
-    let one_index = circle
-        .cups
-        .iter()
-        .position(|&Label(label)| label == 1)
-        .unwrap();
+    println!("part1 = {}", list.order());
+}
 
-    circle.cups.rotate_left(one_index);
-
-    let part1: String = circle
-        .cups
-        .into_iter()
-        .skip(1)
-        .map(|Label(label)| char::from_digit(label, 10).unwrap())
+fn part2(input: &str) {
+    let mut numbers: Vec<u32> = input
+        .trim()
+        .chars()
+        .map(|c| c.to_digit(10).unwrap())
         .collect();
 
-    println!("part1 = {}", part1);
-}
-
-trait Wrapping {
-    fn wrapping_next(&self) -> Self;
-    fn wrapping_prev(&self) -> Self;
-}
-
-impl Wrapping for Label {
-    fn wrapping_next(&self) -> Self {
-        let sum = self.0 + 1;
-
-        if sum > 9 {
-            Label(1)
-        } else {
-            Label(sum)
-        }
+    for i in (numbers.iter().max().unwrap() + 1)..=1_000_000 {
+        numbers.push(i);
     }
 
-    fn wrapping_prev(&self) -> Self {
-        if self.0 == 1 {
-            Label(9)
-        } else {
-            Label(self.0 - 1)
-        }
+    let mut list = LinkedList::<1_000_001>::new(&numbers);
+
+    for _i in 1..=10_000_000 {
+        // println!("-- move {} --", i);
+        list.step();
+        // println!();
     }
+
+    println!("part2 = {}", list.star_product());
 }
 
-impl Wrapping for usize {
-    fn wrapping_next(&self) -> Self {
-        let sum = *self + 1;
-
-        if sum > 9 {
-            0
-        } else {
-            sum
-        }
-    }
-
-    fn wrapping_prev(&self) -> Self {
-        if *self == 0 {
-            9
-        } else {
-            *self - 1
-        }
+fn wrapping_prev<const N: usize>(lhs: usize) -> usize {
+    if lhs == 1 {
+        N - 1
+    } else {
+        lhs - 1
     }
 }
