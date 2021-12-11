@@ -11,6 +11,7 @@ enum Direction {
 }
 
 impl Direction {
+    #[allow(unused)]
     pub const fn all() -> [Self; 6] {
         [
             Self::East,
@@ -112,10 +113,12 @@ impl<T> HexGrid<T> {
         Self(grid)
     }
 
+    #[allow(unused)]
     pub fn height(&self) -> usize {
         self.0.len()
     }
 
+    #[allow(unused)]
     pub fn width(&self) -> usize {
         self.0.first().unwrap().len()
     }
@@ -201,6 +204,7 @@ impl<T> HexGrid<T> {
         (y, x)
     }
 
+    #[allow(unused)]
     pub fn get(&self, y: usize, x: usize) -> Option<&T> {
         self.0.get(y).and_then(|row| row.get(x))
     }
