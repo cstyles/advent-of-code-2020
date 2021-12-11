@@ -106,11 +106,15 @@ impl Color {
 }
 
 #[derive(Debug, Clone)]
-struct HexGrid<T>(Vec<Vec<T>>);
+struct HexGrid<T, const N: usize>([[T; N]; N]);
 
-impl<T> HexGrid<T> {
-    pub fn new(grid: Vec<Vec<T>>) -> Self {
+impl<T, const N: usize> HexGrid<T, N> {
+    pub fn new(grid: [[T; N]; N]) -> Self {
         Self(grid)
+    }
+
+    pub fn center(&self) -> (usize, usize) {
+        (N / 2, N / 2)
     }
 
     #[allow(unused)]
@@ -160,7 +164,7 @@ impl<T> HexGrid<T> {
         }
     }
 
-    pub fn neighbors<const N: usize>(&self, y: usize, x: usize) -> [Option<(usize, usize)>; 6] {
+    pub fn neighbors(&self, y: usize, x: usize) -> [Option<(usize, usize)>; 6] {
         [
             wrapping_next::<N>(x).map(|x| (y, x)), // East
             if y % 2 == 0 {
@@ -187,8 +191,8 @@ impl<T> HexGrid<T> {
         ]
     }
 
-    pub fn neighbor_values<const N: usize>(&self, y: usize, x: usize) -> impl Iterator<Item = &T> {
-        self.neighbors::<N>(y, x)
+    pub fn neighbor_values(&self, y: usize, x: usize) -> impl Iterator<Item = &T> {
+        self.neighbors(y, x)
             .into_iter()
             .flatten()
             .map(|(y, x)| self.get_unchecked(y, x))
@@ -218,7 +222,7 @@ impl<T> HexGrid<T> {
     }
 }
 
-impl HexGrid<Color> {
+impl<const N: usize> HexGrid<Color, N> {
     pub fn count_black(&self) -> usize {
         let mut count = 0;
         for row in &self.0 {
@@ -234,7 +238,7 @@ impl HexGrid<Color> {
         for (y, row) in self.0.iter().enumerate() {
             for (x, tile) in row.iter().enumerate() {
                 let adjacent_black_tiles = self
-                    .neighbor_values::<200>(y, x)
+                    .neighbor_values(y, x)
                     .filter(|&&color| color == Color::Black)
                     .count();
 
@@ -257,7 +261,7 @@ impl HexGrid<Color> {
     }
 }
 
-impl<T: Display> HexGrid<T> {
+impl<T: Display, const N: usize> HexGrid<T, N> {
     #[allow(unused)]
     pub fn debug(&self) {
         for (y, row) in self.0.iter().enumerate() {
@@ -279,10 +283,10 @@ fn main() {
     let input = include_str!("../input.txt");
     let paths: Vec<Path> = input.lines().map(Path::from).collect();
 
-    let grid = vec![vec![Color::default(); 200]; 200];
-    let mut grid = HexGrid::new(grid);
+    let grid = [[Color::default(); 200]; 200];
+    let mut grid: HexGrid<Color, 200> = HexGrid::new(grid);
 
-    let (y, x) = (100, 100);
+    let (y, x) = grid.center();
 
     for path in paths {
         let (ty, tx) = grid.trace(y, x, path);
