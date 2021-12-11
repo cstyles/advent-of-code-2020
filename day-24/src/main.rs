@@ -293,18 +293,13 @@ fn main() {
         grid.get_mut(ty, tx).unwrap().flip();
     }
 
-    // grid.debug();
-
     println!("part1 = {}", grid.count_black());
-    println!();
 
-    for day in 1..=100 {
+    for _day in 1..=100 {
         grid.evolve();
-        if day <= 10 || day % 10 == 0 {
-            println!("day {} = {}", day, grid.count_black());
-            // grid.debug();
-        }
     }
+
+    println!("part2 = {}", grid.count_black());
 }
 
 const fn wrapping_prev<const N: usize>(lhs: usize) -> Option<usize> {
