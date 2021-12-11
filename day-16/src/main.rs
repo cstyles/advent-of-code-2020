@@ -49,15 +49,16 @@ fn main() {
 fn part1() {
     let lines = INPUT.lines();
 
-    let ranges: Vec<RangeInclusive<usize>> = lines
-        .clone()
-        .take(20)
-        .map(Field::from)
-        .fold(vec![], |mut ranges, field| {
-            ranges.push(field.range1);
-            ranges.push(field.range2);
-            ranges
-        });
+    let ranges: Vec<RangeInclusive<usize>> =
+        lines
+            .clone()
+            .take(20)
+            .map(Field::from)
+            .fold(vec![], |mut ranges, field| {
+                ranges.push(field.range1);
+                ranges.push(field.range2);
+                ranges
+            });
 
     let lines = lines.skip(5);
     let sum: usize = lines
@@ -77,11 +78,7 @@ fn part1() {
 }
 
 fn part2() {
-    let fields: Vec<Field> = INPUT
-        .lines()
-        .take(20)
-        .map(Field::from)
-        .collect();
+    let fields: Vec<Field> = INPUT.lines().take(20).map(Field::from).collect();
 
     let field_name_set: HashSet<&str> = fields.iter().map(|field| field.name).collect();
 

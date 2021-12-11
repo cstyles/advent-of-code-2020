@@ -51,11 +51,7 @@ impl<'a> std::convert::From<&'a str> for Password<'a> {
 }
 
 fn main() {
-    let passwords: Vec<Password> = INPUT
-        .trim()
-        .lines()
-        .map(Password::from)
-        .collect();
+    let passwords: Vec<Password> = INPUT.trim().lines().map(Password::from).collect();
 
     part1(&passwords);
     part2(&passwords);
