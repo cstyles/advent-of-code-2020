@@ -232,9 +232,7 @@ impl<const N: usize> HexGrid<Color, N> {
         count
     }
 
-    pub fn evolve(&mut self) {
-        let mut new_grid = self.clone();
-
+    pub fn evolve(&mut self, buffer: &mut Self) {
         for (y, row) in self.0.iter().enumerate() {
             for (x, tile) in row.iter().enumerate() {
                 let adjacent_black_tiles = self
@@ -245,19 +243,23 @@ impl<const N: usize> HexGrid<Color, N> {
                 match tile {
                     Color::Black => {
                         if adjacent_black_tiles == 0 || adjacent_black_tiles > 2 {
-                            new_grid.0[y][x] = Color::White;
+                            buffer.0[y][x] = Color::White;
+                        } else {
+                            buffer.0[y][x] = Color::Black;
                         }
                     }
                     Color::White => {
                         if adjacent_black_tiles == 2 {
-                            new_grid.0[y][x] = Color::Black;
+                            buffer.0[y][x] = Color::Black;
+                        } else {
+                            buffer.0[y][x] = Color::White;
                         }
                     }
                 }
             }
         }
 
-        *self = new_grid;
+        std::mem::swap(self, buffer);
     }
 }
 
@@ -285,6 +287,7 @@ fn main() {
 
     let grid = [[Color::default(); 200]; 200];
     let mut grid: HexGrid<Color, 200> = HexGrid::new(grid);
+    let mut alt = grid.clone();
 
     let (y, x) = grid.center();
 
@@ -296,7 +299,7 @@ fn main() {
     println!("part1 = {}", grid.count_black());
 
     for _day in 1..=100 {
-        grid.evolve();
+        grid.evolve(&mut alt);
     }
 
     println!("part2 = {}", grid.count_black());
