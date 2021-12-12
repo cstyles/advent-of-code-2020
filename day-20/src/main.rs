@@ -45,14 +45,9 @@ impl Display for Border {
 
 impl Border {
     fn reverse(&self) -> Border {
-        Border(
-            self.0
-                .into_iter()
-                .rev()
-                .collect::<Vec<_>>()
-                .try_into()
-                .unwrap(),
-        )
+        let mut array = self.0;
+        array.reverse();
+        Border(array)
     }
 }
 
