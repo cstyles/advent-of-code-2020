@@ -80,7 +80,7 @@ fn parse_rule_number<'a>(
     rules: &'a HashMap<&str, Rule>,
     rule_number: &str,
     string: &'a str,
-) -> Result<(&'a str, &'a str), ()> {
+) -> Result<(&'a str, &'a str), (&'a Rule<'a>, &'a str)> {
     let rule = rules.get(rule_number).unwrap();
     parse_rule(rules, rule, string)
 }
@@ -89,7 +89,7 @@ fn parse_rule<'a>(
     rules: &'a HashMap<&str, Rule>,
     rule: &'a Rule,
     string: &'a str,
-) -> Result<(&'a str, &'a str), ()> {
+) -> Result<(&'a str, &'a str), (&'a Rule<'a>, &'a str)> {
     use Rule::*;
 
     match rule {
@@ -100,7 +100,7 @@ fn parse_rule<'a>(
 
                 Ok((rest, parsed))
             } else {
-                Err(())
+                Err((rule, string))
             }
         }
         Alias(alias) => parse_rule_number(rules, alias, string),
@@ -132,7 +132,7 @@ fn parse_rule<'a>(
                 }
             }
 
-            Err(())
+            Err((rule, string))
         }
     }
 }
