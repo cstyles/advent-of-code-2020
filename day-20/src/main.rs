@@ -102,7 +102,8 @@ fn main() {
     let input = include_str!("../input.txt");
     let tiles: Vec<Tile> = input.split("\n\n").map(Tile::from).collect();
 
-    part1(tiles);
+    part1(tiles.clone());
+    part2(tiles);
 }
 
 fn part1(tiles: Vec<Tile>) {
@@ -130,4 +131,25 @@ fn part1(tiles: Vec<Tile>) {
 
     let product: usize = corners.into_iter().product();
     println!("part1 = {}", product);
+}
+
+fn part2(tiles: Vec<Tile>) {
+    // find a corner
+    // place it in top left corner
+    // find the two matching
+    for reference_tile in tiles.iter() {
+        for reference_border in reference_tile.borders() {
+            for tile in tiles.iter() {
+                if reference_tile == tile {
+                    continue;
+                }
+
+                for border in tile.borders() {
+                    if reference_border == border || reference_border == border.reverse() {
+                        // whaaa??
+                    }
+                }
+            }
+        }
+    }
 }
