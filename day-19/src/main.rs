@@ -66,29 +66,37 @@ fn part1() {
 
     // println!("{:#?}", rules);
 
-    let part1 = string_section
+    let (ok, err): (Vec<_>, Vec<_>) = string_section
         .lines()
-        .inspect(|line| println!("{}", line))
-        .filter_map(|line| parse_rule_number(&rules, "0", line).ok())
-        .filter(|(rest, _parsed)| rest.is_empty())
-        .count();
+        // .inspect(|line| println!("{}", line))
+        .skip(2)
+        .take(1)
+        .map(|line| (line, parse_rule_number(&rules, "0", line, 0)))
+        .partition(|(_line, result)| result.is_ok());
+    // .filter(|(rest, _parsed)| rest.is_empty())
+    // .inspect(|_| println!("yes!"))
+    // .count();
 
-    println!("part1 = {}", part1);
+    dbg!(err);
+
+    // println!("part1 = {}", part1);
 }
 
 fn parse_rule_number<'a>(
     rules: &'a HashMap<&str, Rule>,
     rule_number: &str,
     string: &'a str,
+    indent: usize,
 ) -> Result<(&'a str, &'a str), (&'a Rule<'a>, &'a str)> {
     let rule = rules.get(rule_number).unwrap();
-    parse_rule(rules, rule, string)
+    parse_rule(rules, rule, string, indent)
 }
 
 fn parse_rule<'a>(
     rules: &'a HashMap<&str, Rule>,
     rule: &'a Rule,
     string: &'a str,
+    indent: usize,
 ) -> Result<(&'a str, &'a str), (&'a Rule<'a>, &'a str)> {
     use Rule::*;
 
@@ -103,13 +111,13 @@ fn parse_rule<'a>(
                 Err((rule, string))
             }
         }
-        Alias(alias) => parse_rule_number(rules, alias, string),
+        Alias(alias) => parse_rule_number(rules, alias, string, indent + 1),
         Sequence(sequence) => {
             let mut rest = string;
             let mut parsed = String::new();
 
             for alias in sequence {
-                let result = parse_rule_number(rules, alias, rest);
+                let result = parse_rule_number(rules, alias, rest, indent + 1);
 
                 match result {
                     Ok((rest2, parsed2)) => {
@@ -123,16 +131,31 @@ fn parse_rule<'a>(
             Ok((rest, "ugh"))
         }
         Alt(parts) => {
-            for rule in parts {
-                let result = parse_rule(rules, rule, string);
+            for inner_rule in parts {
+                debug(indent, &format!("[{:?}] Alt, trying {:?}", rule, inner_rule));
+                let result = parse_rule(rules, inner_rule, string, indent + 1);
                 // println!("Alt({:?}) => {:?}", rule, result);
                 match result {
-                    Ok(_) => return result,
-                    Err(_) => continue,
+                    Ok(_) => {
+                        debug(indent, "success!");
+                        return result;
+                    }
+                    Err(_) => {
+                        debug(indent, "was bad, continuing...");
+                        continue;
+                    }
                 }
             }
 
             Err((rule, string))
         }
     }
+}
+
+fn debug(indent: usize, message: &str) {
+    for _ in 0..indent {
+        print!(" ");
+    }
+
+    println!("{}", message);
 }
