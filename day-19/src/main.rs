@@ -14,7 +14,7 @@ enum Rule<'a> {
     Alias(&'a str),         // 0: 1
     Sequence(Vec<&'a str>), // 0: 1 2
     // RecursiveSequence(Vec<&'a str>),
-    Alt(Vec<Box<Rule<'a>>>), // 0: 1 | 2
+    Alt(Vec<Rule<'a>>), // 0: 1 | 2
 }
 
 impl<'a> Rule<'a> {
@@ -28,7 +28,7 @@ impl<'a> Rule<'a> {
         } else if string.contains('|') {
             let alt_parts = string
                 .split('|')
-                .map(|s| Box::new(Rule::new(s.trim(), rule_number)))
+                .map(|s| Rule::new(s.trim(), rule_number))
                 .collect();
 
             Rule::Alt(alt_parts)
@@ -68,7 +68,7 @@ fn part1() {
 
     let part1 = string_section
         .lines()
-        .map(|line| { println!("{}", line); line })
+        .inspect(|line| println!("{}", line))
         .filter_map(|line| parse_rule_number(&rules, "0", line).ok())
         .filter(|(rest, _parsed)| rest.is_empty())
         .count();
@@ -127,9 +127,7 @@ fn parse_rule<'a>(
                 let result = parse_rule(rules, rule, string);
                 // println!("Alt({:?}) => {:?}", rule, result);
                 match result {
-                    Ok(_) => {
-                        return result
-                    }
+                    Ok(_) => return result,
                     Err(_) => continue,
                 }
             }
