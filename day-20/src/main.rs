@@ -51,10 +51,16 @@ impl Border {
     }
 }
 
-#[derive(Debug, PartialEq, Eq, Clone, Copy)]
+#[derive(Debug, Clone, Copy)]
 struct Tile {
     id: usize,
     map: [[Pixel; 10]; 10],
+}
+
+impl PartialEq for Tile {
+    fn eq(&self, other: &Self) -> bool {
+        self.id == other.id
+    }
 }
 
 impl From<&str> for Tile {
