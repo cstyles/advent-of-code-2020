@@ -75,26 +75,37 @@ impl From<&str> for Tile {
 
 impl Tile {
     fn borders(&self) -> [Border; 4] {
-        let top = self.map[0];
-        let bottom = self.map[self.map.len() - 1];
+        [self.top(), self.right(), self.bottom(), self.left()]
+    }
 
-        let left = self
-            .map
-            .into_iter()
-            .map(|row| row[0])
-            .collect::<Vec<Pixel>>()
-            .try_into()
-            .unwrap();
+    fn top(&self) -> Border {
+        Border(self.map[0])
+    }
 
-        let right = self
-            .map
-            .into_iter()
-            .map(|row| row[row.len() - 1])
-            .collect::<Vec<Pixel>>()
-            .try_into()
-            .unwrap();
+    fn bottom(&self) -> Border {
+        Border(self.map[self.map.len() - 1])
+    }
 
-        [Border(top), Border(right), Border(bottom), Border(left)]
+    fn left(&self) -> Border {
+        Border(
+            self.map
+                .into_iter()
+                .map(|row| row[0])
+                .collect::<Vec<Pixel>>()
+                .try_into()
+                .unwrap(),
+        )
+    }
+
+    fn right(&self) -> Border {
+        Border(
+            self.map
+                .into_iter()
+                .map(|row| row[row.len() - 1])
+                .collect::<Vec<Pixel>>()
+                .try_into()
+                .unwrap(),
+        )
     }
 }
 
