@@ -69,7 +69,7 @@ fn part1() {
         .lines()
         .map(|line| parse_rule_number(&rules, 0, line))
         .filter_map(Result::ok)
-        .filter(|(rest, _parsed)| rest.is_empty())
+        .filter(|rest| rest.is_empty())
         .count();
 
     println!("part1 = {part1}");
@@ -85,7 +85,7 @@ fn part2() {
         .lines()
         .map(|line| parse_rule_number(&rules, 0, line))
         .filter_map(Result::ok)
-        .filter(|(rest, _parsed)| rest.is_empty())
+        .filter(|rest| rest.is_empty())
         .count();
 
     println!("part2 = {part2}");
@@ -95,7 +95,7 @@ fn parse_rule_number<'a>(
     rules: &'a HashMap<u8, Rule>,
     rule_number: u8,
     string: &'a str,
-) -> Result<(&'a str, &'a str), (&'a Rule<'a>, &'a str)> {
+) -> Result<&'a str, (&'a Rule<'a>, &'a str)> {
     let rule = rules.get(&rule_number).unwrap();
     parse_rule(rules, rule, string)
 }
@@ -104,16 +104,14 @@ fn parse_rule<'a>(
     rules: &'a HashMap<u8, Rule>,
     rule: &'a Rule,
     string: &'a str,
-) -> Result<(&'a str, &'a str), (&'a Rule<'a>, &'a str)> {
+) -> Result<&'a str, (&'a Rule<'a>, &'a str)> {
     use Rule::*;
 
     match rule {
         Literal(literal) => {
             if string.starts_with(*literal) {
                 let rest = &string[literal.len()..];
-                let parsed = literal;
-
-                Ok((rest, parsed))
+                Ok(rest)
             } else {
                 Err((rule, string))
             }
@@ -121,21 +119,15 @@ fn parse_rule<'a>(
         Alias(alias) => parse_rule_number(rules, *alias, string),
         Sequence(sequence) => {
             let mut rest = string;
-            let mut parsed = String::new();
 
             for alias in sequence {
-                let result = parse_rule_number(rules, *alias, rest);
-
-                match result {
-                    Ok((rest2, parsed2)) => {
-                        rest = rest2;
-                        parsed.push_str(parsed2);
-                    }
+                match parse_rule_number(rules, *alias, rest) {
+                    Ok(rest2) => rest = rest2,
                     Err(err) => return Err(err),
                 };
             }
 
-            Ok((rest, "ugh"))
+            Ok(rest)
         }
         Alt(parts) => {
             for inner_rule in parts {
@@ -150,7 +142,7 @@ fn parse_rule<'a>(
         }
         Final(a, b) => {
             let mut left = string;
-            let (rest, _parsed) = parse_rule_number(rules, *a, left)?;
+            let rest = parse_rule_number(rules, *a, left)?;
             left = rest;
             let mut a_count = 1;
 
@@ -158,9 +150,9 @@ fn parse_rule<'a>(
                 let left_before_b = left;
                 for _ in 0..(a_count - 1) {
                     match parse_rule_number(rules, *b, left) {
-                        Ok((rest, _)) => {
+                        Ok(rest) => {
                             if rest.is_empty() {
-                                return Ok((rest, "ugh"));
+                                return Ok(rest);
                             }
                             left = rest;
                         }
@@ -168,7 +160,7 @@ fn parse_rule<'a>(
                     }
                 }
 
-                let (rest, _) = parse_rule_number(rules, *a, left_before_b)?;
+                let rest = parse_rule_number(rules, *a, left_before_b)?;
                 left = rest;
                 a_count += 1;
             }
