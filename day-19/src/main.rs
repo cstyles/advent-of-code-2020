@@ -1,102 +1,109 @@
 use std::collections::HashMap;
-// use std::convert::From;
 
-// static INPUT: &str = include_str!("../input-part1.txt");
-// static INPUT: &str = include_str!("../input-part2.txt");
-// static INPUT: &str = include_str!("../test-input.txt");
-// static INPUT: &str = include_str!("../test-input2.txt");
-static INPUT: &str = include_str!("../test-input3.txt");
-// static INPUT: &str = include_str!("../my-input.txt");
+static INPUT: &str = include_str!("../input-part1.txt");
 
 #[derive(Debug)]
 enum Rule<'a> {
-    Literal(&'a str),       // 0: "a"
-    Alias(&'a str),         // 0: 1
-    Sequence(Vec<&'a str>), // 0: 1 2
-    // RecursiveSequence(Vec<&'a str>),
+    Literal(&'a str),   // 0: "a"
+    Alias(u8),          // 0: 1
+    Sequence(Vec<u8>),  // 0: 1 2
     Alt(Vec<Rule<'a>>), // 0: 1 | 2
+    Final(u8, u8),
 }
 
 impl<'a> Rule<'a> {
-    fn new(string: &'a str, rule_number: &str) -> Self {
+    fn new(string: &'a str, rule_number: u8, is_part2: bool) -> Self {
         let string = string.trim();
 
         if string == "\"a\"" {
             Rule::Literal("a")
         } else if string == "\"b\"" {
             Rule::Literal("b")
+        } else if rule_number == 0 && is_part2 {
+            Rule::Final(42, 31)
         } else if string.contains('|') {
             let alt_parts = string
                 .split('|')
-                .map(|s| Rule::new(s.trim(), rule_number))
+                .map(|s| Rule::new(s.trim(), rule_number, is_part2))
                 .collect();
 
             Rule::Alt(alt_parts)
         } else if string.contains(' ') {
-            let seq_parts: Vec<&str> = string.split(' ').collect();
-            // let recursive = seq_parts.contains(&rule_number);
-            // println!("rule_number: {}; recursive: {}", rule_number, recursive);
+            let seq_parts: Vec<u8> = string
+                .split(' ')
+                .map(|part| part.parse().unwrap())
+                .collect();
 
             Rule::Sequence(seq_parts)
         } else {
-            Rule::Alias(string)
+            Rule::Alias(string.parse().unwrap())
         }
     }
 }
 
+fn get_rules(input: &str, is_part2: bool) -> HashMap<u8, Rule> {
+    input
+        .lines()
+        .map(|line| {
+            let mut splits = line.split(": ");
+            let rule_number: u8 = splits.next().unwrap().parse().unwrap();
+            let rule = Rule::new(splits.next().unwrap(), rule_number, is_part2);
+
+            (rule_number, rule)
+        })
+        .collect()
+}
+
 fn main() {
     part1();
+    part2();
 }
 
 fn part1() {
     let mut sections = INPUT.split("\n\n");
     let rule_section = sections.next().unwrap();
     let string_section = sections.next().unwrap();
+    let rules = get_rules(rule_section, false);
 
-    let rules: HashMap<&str, Rule> = rule_section
+    let part1 = string_section
         .lines()
-        .map(|line| {
-            let mut splits = line.split(": ");
-            let rule_number = splits.next().unwrap();
-            let rule = Rule::new(splits.next().unwrap(), rule_number);
+        .map(|line| parse_rule_number(&rules, 0, line))
+        .filter_map(Result::ok)
+        .filter(|(rest, _parsed)| rest.is_empty())
+        .count();
 
-            (rule_number, rule)
-        })
-        .collect();
+    println!("part1 = {part1}");
+}
 
-    // println!("{:#?}", rules);
+fn part2() {
+    let mut sections = INPUT.split("\n\n");
+    let rule_section = sections.next().unwrap();
+    let string_section = sections.next().unwrap();
+    let rules = get_rules(rule_section, true);
 
-    let (ok, err): (Vec<_>, Vec<_>) = string_section
+    let part2 = string_section
         .lines()
-        // .inspect(|line| println!("{}", line))
-        .skip(2)
-        .take(1)
-        .map(|line| (line, parse_rule_number(&rules, "0", line, 0)))
-        .partition(|(_line, result)| result.is_ok());
-    // .filter(|(rest, _parsed)| rest.is_empty())
-    // .inspect(|_| println!("yes!"))
-    // .count();
+        .map(|line| parse_rule_number(&rules, 0, line))
+        .filter_map(Result::ok)
+        .filter(|(rest, _parsed)| rest.is_empty())
+        .count();
 
-    dbg!(err);
-
-    // println!("part1 = {}", part1);
+    println!("part2 = {part2}");
 }
 
 fn parse_rule_number<'a>(
-    rules: &'a HashMap<&str, Rule>,
-    rule_number: &str,
+    rules: &'a HashMap<u8, Rule>,
+    rule_number: u8,
     string: &'a str,
-    indent: usize,
 ) -> Result<(&'a str, &'a str), (&'a Rule<'a>, &'a str)> {
-    let rule = rules.get(rule_number).unwrap();
-    parse_rule(rules, rule, string, indent)
+    let rule = rules.get(&rule_number).unwrap();
+    parse_rule(rules, rule, string)
 }
 
 fn parse_rule<'a>(
-    rules: &'a HashMap<&str, Rule>,
+    rules: &'a HashMap<u8, Rule>,
     rule: &'a Rule,
     string: &'a str,
-    indent: usize,
 ) -> Result<(&'a str, &'a str), (&'a Rule<'a>, &'a str)> {
     use Rule::*;
 
@@ -111,13 +118,13 @@ fn parse_rule<'a>(
                 Err((rule, string))
             }
         }
-        Alias(alias) => parse_rule_number(rules, alias, string, indent + 1),
+        Alias(alias) => parse_rule_number(rules, *alias, string),
         Sequence(sequence) => {
             let mut rest = string;
             let mut parsed = String::new();
 
             for alias in sequence {
-                let result = parse_rule_number(rules, alias, rest, indent + 1);
+                let result = parse_rule_number(rules, *alias, rest);
 
                 match result {
                     Ok((rest2, parsed2)) => {
@@ -132,30 +139,39 @@ fn parse_rule<'a>(
         }
         Alt(parts) => {
             for inner_rule in parts {
-                debug(indent, &format!("[{:?}] Alt, trying {:?}", rule, inner_rule));
-                let result = parse_rule(rules, inner_rule, string, indent + 1);
-                // println!("Alt({:?}) => {:?}", rule, result);
+                let result = parse_rule(rules, inner_rule, string);
                 match result {
-                    Ok(_) => {
-                        debug(indent, "success!");
-                        return result;
-                    }
-                    Err(_) => {
-                        debug(indent, "was bad, continuing...");
-                        continue;
-                    }
+                    Ok(_) => return result,
+                    Err(_) => continue,
                 }
             }
 
             Err((rule, string))
         }
-    }
-}
+        Final(a, b) => {
+            let mut left = string;
+            let (rest, _parsed) = parse_rule_number(rules, *a, left)?;
+            left = rest;
+            let mut a_count = 1;
 
-fn debug(indent: usize, message: &str) {
-    for _ in 0..indent {
-        print!(" ");
-    }
+            loop {
+                let left_before_b = left;
+                for _ in 0..(a_count - 1) {
+                    match parse_rule_number(rules, *b, left) {
+                        Ok((rest, _)) => {
+                            if rest.is_empty() {
+                                return Ok((rest, "ugh"));
+                            }
+                            left = rest;
+                        }
+                        Err(_) => break,
+                    }
+                }
 
-    println!("{}", message);
+                let (rest, _) = parse_rule_number(rules, *a, left_before_b)?;
+                left = rest;
+                a_count += 1;
+            }
+        }
+    }
 }

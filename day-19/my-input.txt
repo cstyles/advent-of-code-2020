@@ -1,4 +1,15 @@
-0: 42 | 42 0
+0: 8
+8: 42 | 42 8
 42: "a"
+31: "b"
 
-aa
+a
+ab
+aab
+aabb
+aaab
+aaabb
+aaaabb
+aaaabbb
+aaaabbbb
+aaaaaaab
