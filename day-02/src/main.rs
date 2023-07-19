@@ -1,14 +1,4 @@
-use regex::Regex;
-
-static INPUT: &str = include_str!("../input.txt");
-
-lazy_static::lazy_static! (
-    static ref RE: Regex = {
-        Regex::new(r#"^(\d+)-(\d+) (\w): (.*)$"#).expect("couldn't compile regex")
-    };
-);
-
-#[derive(Default, Debug, Clone)]
+#[derive(Debug)]
 struct Password<'a> {
     required_letter: char,
     min: usize,
@@ -37,21 +27,24 @@ impl<'a> Password<'a> {
     }
 }
 
-impl<'a> std::convert::From<&'a str> for Password<'a> {
+impl<'a> From<&'a str> for Password<'a> {
     fn from(string: &'a str) -> Self {
-        let captures = RE.captures(string).expect("coudn't match regex");
+        let (min, rest) = string.split_once('-').unwrap();
+        let (max, rest) = rest.split_once(' ').unwrap();
+        let (required_letter, string) = rest.split_once(": ").unwrap();
 
         Self {
-            required_letter: captures.get(3).unwrap().as_str().chars().next().unwrap(),
-            min: captures.get(1).unwrap().as_str().parse().unwrap(),
-            max: captures.get(2).unwrap().as_str().parse().unwrap(),
-            string: captures.get(4).unwrap().as_str(),
+            required_letter: required_letter.chars().next().unwrap(),
+            min: min.parse().unwrap(),
+            max: max.parse().unwrap(),
+            string,
         }
     }
 }
 
 fn main() {
-    let passwords: Vec<Password> = INPUT.trim().lines().map(Password::from).collect();
+    let input = include_str!("../input.txt");
+    let passwords: Vec<Password> = input.lines().map(Password::from).collect();
 
     part1(&passwords);
     part2(&passwords);
